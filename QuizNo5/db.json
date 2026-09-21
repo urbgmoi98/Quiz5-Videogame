@@ -1,0 +1,10 @@
+{
+  "puntajes": [
+    { "id": "1", "jugador": "NeoY2K", "puntos": 120, "fecha": "2026-09-22" },
+    { "id": "2", "jugador": "AquaGlitch", "puntos": 85, "fecha": "2026-09-21" }
+  ],
+  "jugadores": [
+    { "id": "1", "nombre": "NeoY2K", "avatar": "🐬" },
+    { "id": "2", "nombre": "AquaGlitch", "avatar": "🫧" }
+  ]
+}
