@@ -2,36 +2,92 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Tablero } from '../Components/Tablero';
 import { Marcador } from '../Components/Marcador';
 import { Menu } from '../Components/Menu';
+import { sound } from '../Utils/sound';
 
 const GRID_SIZE = 20;
 const INITIAL_SNAKE = [
   { x: 10, y: 10 },
   { x: 10, y: 11 },
-  { x: 10, y: 12 },
 ];
 const INITIAL_DIR = { x: 0, y: -1 };
 const INITIAL_FOOD = { x: 5, y: 5 };
 
+const POWERUP_TYPES = [
+  { type: 'speed', icon: '⚡', label: 'TURBO', duration: 5 },
+  { type: 'slow', icon: '🐢', label: 'LENTO', duration: 6 },
+  { type: 'star', icon: '⭐', label: 'PUNTOS X2', duration: 7 },
+  { type: 'shrink', icon: '💎', label: 'CORTE COLA', duration: 0 },
+];
+
 export const Juego = () => {
   const [snake, setSnake] = useState(INITIAL_SNAKE);
   const [food, setFood] = useState(INITIAL_FOOD);
+  const [powerup, setPowerup] = useState(null);
+  const [obstacles, setObstacles] = useState([]);
+  const [activePowerUp, setActivePowerUp] = useState(null);
+
   const [estado, setEstado] = useState('idle'); // idle | playing | paused | gameover
   const [puntos, setPuntos] = useState(0);
   const [vidas, setVidas] = useState(3);
   const [directionDisplay, setDirectionDisplay] = useState(INITIAL_DIR);
 
-  // Referencias mutables para evitar cierres obsoletos (stale closures) en el interval de React
   const dirRef = useRef(INITIAL_DIR);
   const foodRef = useRef(INITIAL_FOOD);
+  const powerupRef = useRef(null);
+  const activePowerUpRef = useRef(null);
 
-  // Mantener foodRef sincronizado con el estado de la comida
+  // Calcular Nivel según el Puntaje (Dificultad Progresiva)
+  const nivel = Math.floor(puntos / 40) + 1;
+
   useEffect(() => {
     foodRef.current = food;
   }, [food]);
 
+  useEffect(() => {
+    powerupRef.current = powerup;
+  }, [powerup]);
+
+  // Generar obstáculos según el nivel alcanzado
+  useEffect(() => {
+    if (nivel > 1) {
+      const newObs = [];
+      const count = Math.min((nivel - 1) * 2, 8);
+      for (let i = 0; i < count; i++) {
+        newObs.push({
+          x: (i * 3 + 2) % (GRID_SIZE - 2) + 1,
+          y: (i * 4 + 3) % (GRID_SIZE - 2) + 1,
+        });
+      }
+      setObstacles(newObs);
+      sound.playLevelUp();
+    } else {
+      setObstacles([]);
+    }
+  }, [nivel]);
+
+  // Manejar tiempo restante de Power-Ups
+  useEffect(() => {
+    if (!activePowerUp) return;
+    activePowerUpRef.current = activePowerUp;
+
+    if (activePowerUp.duration > 0) {
+      const timer = setInterval(() => {
+        setActivePowerUp((prev) => {
+          if (!prev || prev.duration <= 1) {
+            activePowerUpRef.current = null;
+            return null;
+          }
+          const updated = { ...prev, duration: prev.duration - 1 };
+          activePowerUpRef.current = updated;
+          return updated;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [activePowerUp]);
+
   const cambiarDireccion = useCallback((nuevaDir) => {
     const actual = dirRef.current;
-    // Evitar rotación inversa sobre el propio cuerpo de la serpiente
     if (nuevaDir.x !== 0 && actual.x === 0) {
       dirRef.current = nuevaDir;
       setDirectionDisplay(nuevaDir);
@@ -40,8 +96,6 @@ export const Juego = () => {
       dirRef.current = nuevaDir;
       setDirectionDisplay(nuevaDir);
     }
-
-    // Auto-iniciar la partida al interactuar
     setEstado((prev) => (prev === 'idle' ? 'playing' : prev));
   }, []);
 
@@ -50,12 +104,10 @@ export const Juego = () => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
       }
-
       if (e.key === ' ') {
         setEstado((prev) => (prev === 'playing' ? 'paused' : prev === 'paused' ? 'playing' : prev));
         return;
       }
-
       switch (e.key) {
         case 'ArrowUp': cambiarDireccion({ x: 0, y: -1 }); break;
         case 'ArrowDown': cambiarDireccion({ x: 0, y: 1 }); break;
@@ -72,11 +124,14 @@ export const Juego = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Bucle principal de juego (Game Loop)
+  // Bucle Principal de Juego
   useEffect(() => {
     if (estado !== 'playing') return;
 
-    const velocidad = Math.max(70, 150 - Math.floor(puntos / 50) * 15);
+    // Ajuste dinámico de velocidad según nivel y power-ups activos
+    let baseSpeed = Math.max(50, 140 - (nivel - 1) * 15);
+    if (activePowerUpRef.current?.type === 'speed') baseSpeed = Math.max(35, baseSpeed - 40);
+    if (activePowerUpRef.current?.type === 'slow') baseSpeed += 50;
 
     const timer = setInterval(() => {
       setSnake((prevSnake) => {
@@ -84,32 +139,37 @@ export const Juego = () => {
         const head = prevSnake[0];
         const nextHead = { x: head.x + dir.x, y: head.y + dir.y };
 
-        // Colisión con paredes
+        // Colisión BORDES
         if (
           nextHead.x < 0 ||
           nextHead.x >= GRID_SIZE ||
           nextHead.y < 0 ||
           nextHead.y >= GRID_SIZE
         ) {
+          sound.playHit();
           manejarPerdidaVida();
           return prevSnake;
         }
 
-        // Colisión con el propio cuerpo
-        if (prevSnake.some((seg) => seg.x === nextHead.x && seg.y === nextHead.y)) {
+        // Colisión CUERPO u OBSTÁCULOS
+        const choqueCuerpo = prevSnake.some((seg) => seg.x === nextHead.x && seg.y === nextHead.y);
+        const choqueObstaculo = obstacles.some((obs) => obs.x === nextHead.x && obs.y === nextHead.y);
+
+        if (choqueCuerpo || choqueObstaculo) {
+          sound.playHit();
           manejarPerdidaVida();
           return prevSnake;
         }
 
-        // Detección de comida
-        const estaComiendo = nextHead.x === foodRef.current.x && nextHead.y === foodRef.current.y;
+        let nuevaSerpiente = [nextHead, ...prevSnake];
 
-        if (estaComiendo) {
-          setPuntos((p) => p + 10);
+        // Comer COMIDA NORMAL
+        if (nextHead.x === foodRef.current.x && nextHead.y === foodRef.current.y) {
+          sound.playEat();
+          const multiplicador = activePowerUpRef.current?.type === 'star' ? 2 : 1;
+          setPuntos((p) => p + 10 * multiplicador);
 
-          const nuevaSerpiente = [nextHead, ...prevSnake];
-
-          // Generar nueva comida fuera de la serpiente
+          // Generar Comida
           let nuevaComida;
           do {
             nuevaComida = {
@@ -117,24 +177,50 @@ export const Juego = () => {
               y: Math.floor(Math.random() * GRID_SIZE),
             };
           } while (nuevaSerpiente.some((s) => s.x === nuevaComida.x && s.y === nuevaComida.y));
-
           foodRef.current = nuevaComida;
           setFood(nuevaComida);
 
-          return nuevaSerpiente;
+          // Probabilidad de spawn de Power-Up (25%)
+          if (!powerupRef.current && Math.random() < 0.25) {
+            const pItem = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+            const pos = {
+              x: Math.floor(Math.random() * GRID_SIZE),
+              y: Math.floor(Math.random() * GRID_SIZE),
+              ...pItem,
+            };
+            powerupRef.current = pos;
+            setPowerup(pos);
+          }
+        } else {
+          nuevaSerpiente.pop();
         }
 
-        // Movimiento normal
-        return [nextHead, ...prevSnake.slice(0, -1)];
+        // Comer POWER-UP
+        if (powerupRef.current && nextHead.x === powerupRef.current.x && nextHead.y === powerupRef.current.y) {
+          sound.playPowerUp();
+          const pType = powerupRef.current;
+
+          if (pType.type === 'shrink') {
+            nuevaSerpiente = nuevaSerpiente.slice(0, Math.max(2, nuevaSerpiente.length - 2));
+          } else {
+            setActivePowerUp(pType);
+          }
+
+          powerupRef.current = null;
+          setPowerup(null);
+        }
+
+        return nuevaSerpiente;
       });
-    }, velocidad);
+    }, baseSpeed);
 
     return () => clearInterval(timer);
-  }, [estado, puntos]);
+  }, [estado, nivel, obstacles]);
 
   const manejarPerdidaVida = () => {
     setVidas((v) => {
       if (v - 1 <= 0) {
+        sound.playGameOver();
         setEstado('gameover');
         return 0;
       }
@@ -153,64 +239,34 @@ export const Juego = () => {
     setDirectionDisplay(INITIAL_DIR);
     setFood(INITIAL_FOOD);
     foodRef.current = INITIAL_FOOD;
+    setPowerup(null);
+    powerupRef.current = null;
+    setActivePowerUp(null);
     setPuntos(0);
     setVidas(3);
   };
 
   return (
-    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-      {/* Fondo con burbujas animadas */}
+    <div className="app-container fade-in">
+      {/* Burbujas dinámicas */}
       <div className="bg-bubbles">
-        <div className="bg-bubble" style={{ width: '60px', height: '60px', left: '10%', animationDuration: '8s' }}></div>
-        <div className="bg-bubble" style={{ width: '40px', height: '40px', left: '80%', animationDuration: '12s', animationDelay: '2s' }}></div>
-        <div className="bg-bubble" style={{ width: '80px', height: '80px', left: '50%', animationDuration: '10s', animationDelay: '4s' }}></div>
+        <div className="bg-bubble" style={{ width: '50px', height: '50px', left: '15%', animationDuration: '8s' }}></div>
+        <div className="bg-bubble" style={{ width: '70px', height: '70px', left: '75%', animationDuration: '11s', animationDelay: '2s' }}></div>
       </div>
 
-      <Marcador puntos={puntos} vidas={vidas} nivel={Math.floor(puntos / 50) + 1} />
+      <Marcador puntos={puntos} vidas={vidas} nivel={nivel} activePowerUp={activePowerUp} />
 
-      <div style={{ position: 'relative' }}>
-        <Tablero snake={snake} food={food} direction={directionDisplay} />
-
-        {/* Superposición de estado (Idle, Pausa, Game Over) */}
-        {estado !== 'playing' && (
-          <div
-            className="glass-panel"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              padding: '25px',
-              textAlign: 'center',
-              width: '80%',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-            }}
-          >
-            {estado === 'idle' && (
-              <>
-                <h3 style={{ color: '#00e5ff', fontSize: '1.4rem', marginBottom: '10px' }}>🐍 ¿LISTO PARA NAVEGAR?</h3>
-                <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>Presiona <strong>▶ JUGAR</strong> o toca cualquier flecha del teclado.</p>
-                <button className="btn-y2k" onClick={() => setEstado('playing')}>▶ EMPEZAR YA</button>
-              </>
-            )}
-
-            {estado === 'paused' && (
-              <>
-                <h3 style={{ color: '#fff5b8', fontSize: '1.4rem', marginBottom: '10px' }}>⏸ PAUSA ACUÁTICA</h3>
-                <button className="btn-y2k" onClick={() => setEstado('playing')}>▶ REANUDAR</button>
-              </>
-            )}
-
-            {estado === 'gameover' && (
-              <>
-                <h3 style={{ color: '#ff8fd1', fontSize: '1.5rem', marginBottom: '10px' }}>💥 ¡FIN DE LA PARTIDA!</h3>
-                <p style={{ marginBottom: '15px' }}>Puntaje final: <strong>{puntos} pts</strong></p>
-                <button className="btn-y2k pink" onClick={reiniciarJuego}>🔄 INTENTAR DE NUEVO</button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      <Tablero
+        snake={snake}
+        food={food}
+        powerup={powerup}
+        obstacles={obstacles}
+        direction={directionDisplay}
+        estado={estado}
+        puntos={puntos}
+        nivel={nivel}
+        reiniciar={reiniciarJuego}
+      />
 
       <Menu
         estado={estado}
@@ -219,10 +275,10 @@ export const Juego = () => {
         reiniciar={reiniciarJuego}
       />
 
-      {/* D-Pad Estilo Consola Y2K */}
-      <div className="dpad-container" style={{ marginTop: '15px' }}>
+      {/* D-Pad táctil */}
+      <div className="dpad-container">
         <button className="btn-y2k dpad-btn" onClick={() => cambiarDireccion({ x: 0, y: -1 })}>▲</button>
-        <div style={{ display: 'flex', gap: '15px' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
           <button className="btn-y2k dpad-btn" onClick={() => cambiarDireccion({ x: -1, y: 0 })}>◄</button>
           <button className="btn-y2k dpad-btn" onClick={() => cambiarDireccion({ x: 0, y: 1 })}>▼</button>
           <button className="btn-y2k dpad-btn" onClick={() => cambiarDireccion({ x: 1, y: 0 })}>►</button>
