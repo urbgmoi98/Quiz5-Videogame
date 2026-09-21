@@ -1,13 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
 
 :root {
-  --agua: #00E5FF;
-  --lima: #7CFFB2;
-  --profundo: #0A2A43;
-  --sol: #FFF5B8;
-  --rosa: #FF8FD1;
-  --glass: rgba(255, 255, 255, 0.2);
-  --glass-border: rgba(255, 255, 255, 0.5);
+  --aqua-cyan: #00e5ff;
+  --aqua-blue: #0088ff;
+  --lime-green: #7cffb2;
+  --deep-ocean: #0a2a43;
+  --sun-yellow: #fff5b8;
+  --hot-pink: #ff8fd1;
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --gloss-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.15) 45%, rgba(255, 255, 255, 0) 100%);
 }
 
 * {
@@ -15,118 +16,247 @@
   margin: 0;
   padding: 0;
   font-family: 'Nunito', sans-serif;
+  user-select: none;
 }
 
 body {
-  background: linear-gradient(135deg, var(--agua) 0%, var(--lima) 50%, var(--sol) 100%);
-  color: var(--profundo);
+  background: radial-gradient(circle at 20% 20%, #7cffb2 0%, #00e5ff 35%, #0066cc 70%, #0a2a43 100%);
+  background-size: 200% 200%;
+  animation: aeroWave 12s ease-in-out infinite alternate;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  background-size: 400% 400%;
-  animation: gradientFlow 15s ease infinite;
+  position: relative;
+  color: var(--deep-ocean);
 }
 
-@keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes aeroWave {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
 }
 
+/* Burbujas flotantes de fondo */
+.bg-bubbles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bg-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(0, 229, 255, 0.3) 60%, rgba(255, 255, 255, 0.1) 100%);
+  box-shadow: 0 8px 32px rgba(0, 229, 255, 0.3), inset 0 -4px 8px rgba(0, 0, 0, 0.15), inset 0 4px 10px rgba(255, 255, 255, 0.8);
+  animation: floatUp 10s infinite linear;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(110vh) scale(0.8) rotate(0deg); opacity: 0.3; }
+  50% { opacity: 0.8; transform: translateY(50vh) scale(1.1) rotate(180deg); }
+  100% { transform: translateY(-10vh) scale(0.9) rotate(360deg); opacity: 0; }
+}
+
+/* Panel Cristalino Glossy */
 .glass-panel {
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.37), inset 0 0 15px rgba(255,255,255,0.4);
-  padding: 2rem;
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.12) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 50px rgba(10, 42, 67, 0.35),
+    inset 0 2px 4px rgba(255, 255, 255, 0.9),
+    inset 0 -4px 10px rgba(0, 136, 255, 0.2);
+  z-index: 1;
 }
 
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: var(--gloss-highlight);
+  border-radius: 22px 22px 100% 100% / 22px 22px 15px 15px;
+  pointer-events: none;
+}
+
+/* Botón Y2K 3D */
 .btn-y2k {
-  background: linear-gradient(to bottom, var(--agua), #0099ff);
-  color: white;
-  border: 2px solid white;
-  border-radius: 30px;
-  padding: 10px 25px;
+  position: relative;
+  background: linear-gradient(180deg, #00f0ff 0%, #0088ff 50%, #0055cc 100%);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 50px;
+  padding: 10px 24px;
   font-weight: 900;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 229, 255, 0.5), inset 0 2px 5px rgba(255,255,255,0.8);
-  transition: all 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.btn-y2k:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.8), inset 0 2px 5px rgba(255,255,255,0.8);
-}
-
-/* Tablero Grid - Se usa div/grid porque permite animaciones CSS (bounce/ojitos) mucho más orgánicas que Canvas para este estilo visual. */
-.tablero {
-  display: grid;
-  grid-template-columns: repeat(20, 20px);
-  grid-template-rows: repeat(20, 20px);
-  gap: 1px;
-  background: rgba(10, 42, 67, 0.1);
-  border: 3px solid var(--glass-border);
-  border-radius: 10px;
-  margin: 1rem 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 
+    0 6px 15px rgba(0, 136, 255, 0.5),
+    inset 0 3px 6px rgba(255, 255, 255, 0.8),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   overflow: hidden;
 }
 
-.celda {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
+.btn-y2k::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 50px 50px 100% 100%;
+  pointer-events: none;
 }
 
+.btn-y2k:hover {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 
+    0 10px 25px rgba(0, 229, 255, 0.7),
+    inset 0 4px 8px rgba(255, 255, 255, 0.9),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.btn-y2k:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 2px 8px rgba(0, 136, 255, 0.5);
+}
+
+.btn-y2k.pink {
+  background: linear-gradient(180deg, #ff94d6 0%, #ff3399 50%, #cc0066 100%);
+  box-shadow: 
+    0 6px 15px rgba(255, 51, 153, 0.5),
+    inset 0 3px 6px rgba(255, 255, 255, 0.8),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Tablero 3D Glossy Grid */
+.tablero-container {
+  padding: 12px;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.35), rgba(10, 42, 67, 0.25));
+  border-radius: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 
+    0 15px 35px rgba(0, 40, 80, 0.4),
+    inset 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: repeat(20, 22px);
+  grid-template-rows: repeat(20, 22px);
+  gap: 1.5px;
+  background: rgba(10, 42, 67, 0.4);
+  padding: 6px;
+  border-radius: 12px;
+  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.celda {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Elementos del juego */
 .snake-head {
-  background: linear-gradient(135deg, var(--lima), #00cc44);
+  background: radial-gradient(circle at 35% 35%, #b3ffcb 0%, #00e64d 60%, #00802b 100%);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 12px;
-  box-shadow: 0 0 10px var(--lima);
+  font-size: 13px;
+  box-shadow: 
+    0 0 12px #7cffb2,
+    inset 0 2px 4px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
   z-index: 10;
+  position: relative;
 }
 
 .snake-body {
-  background: linear-gradient(135deg, rgba(124, 255, 178, 0.8), rgba(0, 229, 255, 0.8));
+  background: radial-gradient(circle at 35% 35%, #a6ffdf 0%, #00e5ff 60%, #0077b6 100%);
   border-radius: 8px;
-  animation: breathe 1s infinite alternate;
+  box-shadow: 
+    0 2px 8px rgba(0, 229, 255, 0.6),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  animation: pulseBody 1.5s ease-in-out infinite alternate;
 }
 
-@keyframes breathe {
-  0% { transform: scale(0.95); }
-  100% { transform: scale(1.05); }
+@keyframes pulseBody {
+  0% { transform: scale(0.92); }
+  100% { transform: scale(1.03); }
 }
 
 .food {
-  background: radial-gradient(circle at 30% 30%, #ffffff, var(--rosa));
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ff8fd1 50%, #ff007f 100%);
   border-radius: 50%;
-  box-shadow: 0 0 12px var(--rosa);
-  animation: float 2s ease-in-out infinite;
+  box-shadow: 
+    0 0 16px #ff8fd1,
+    0 0 6px #ffffff,
+    inset 0 3px 5px rgba(255, 255, 255, 1),
+    inset 0 -3px 5px rgba(100, 0, 50, 0.5);
+  animation: foodY2K 1.2s ease-in-out infinite alternate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-3px) scale(1.1); }
+@keyframes foodY2K {
+  0% { transform: scale(0.85) rotate(-5deg); filter: drop-shadow(0 0 4px #ff8fd1); }
+  100% { transform: scale(1.12) rotate(5deg); filter: drop-shadow(0 0 12px #ff007f); }
+}
+
+/* D-Pad Estilo Consola */
+.dpad-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 12px 20px;
+  border-radius: 30px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.6);
+}
+
+.dpad-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  padding: 0;
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease-in;
+  animation: fadeIn 0.4s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-nav { display: flex; gap: 1rem; margin-bottom: 2rem; justify-content: center; }
-a { color: var(--profundo); text-decoration: none; font-weight: bold; }
-a:hover { color: var(--rosa); }
+nav { display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; }
+a { color: var(--deep-ocean); text-decoration: none; font-weight: 900; }
+a:hover { color: var(--hot-pink); }
