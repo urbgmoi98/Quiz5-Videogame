@@ -1,122 +1,159 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './App.css';
+
+// Configuración del tablero
+const BOARD_SIZE = 20; // 20x20 cuadros
+const CELL_SIZE = 20;  // Cada cuadro mide 20x20 píxeles
+const INITIAL_SPEED = 200; // Milisegundos entre cada movimiento (menor = más rápido)
 
 function App() {
-  const [count, setCount] = useState(0)
+  // 1. ESTADOS DEL JUEGO
+  const [snake, setSnake] = useState([{ x: 10, y: 10 }]); // La serpiente empieza en el centro
+  const [food, setFood] = useState({ x: 15, y: 5 });      // La comida empieza en una esquina
+  const [direction, setDirection] = useState('RIGHT');     // Dirección inicial
+  const [gameOver, setGameOver] = useState(false);
+  const [score, setScore] = useState(0);
 
+  // 2. CONTROLES DE TECLADO
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Evitamos que la serpiente se devuelva sobre sí misma (causa bug visual)
+      if (e.key === 'ArrowUp' && direction !== 'DOWN') setDirection('UP');
+      if (e.key === 'ArrowDown' && direction !== 'UP') setDirection('DOWN');
+      if (e.key === 'ArrowLeft' && direction !== 'RIGHT') setDirection('LEFT');
+      if (e.key === 'ArrowRight' && direction !== 'LEFT') setDirection('RIGHT');
+      
+      // Reiniciar si presiona Enter al perder
+      if (e.key === 'Enter' && gameOver) resetGame();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [direction, gameOver]);
+
+  // 3. CICLO DEL JUEGO (GAME LOOP)
+  useEffect(() => {
+    if (gameOver) return;
+
+    const interval = setInterval(() => {
+      moveSnake();
+    }, INITIAL_SPEED);
+
+    // Limpiamos el intervalo cuando el componente se desmonta o el estado cambia
+    return () => clearInterval(interval);
+  }, [snake, gameOver]); 
+
+  // 4. LÓGICA DE MOVIMIENTO
+  const moveSnake = () => {
+    const head = snake[0];
+    let newHead = { ...head };
+
+    // Calculamos la nueva posición de la cabeza
+    if (direction === 'UP') newHead.y -= 1;
+    if (direction === 'DOWN') newHead.y += 1;
+    if (direction === 'LEFT') newHead.x -= 1;
+    if (direction === 'RIGHT') newHead.x += 1;
+
+    // Detectar colisión con las paredes
+    if (newHead.x < 0 || newHead.x >= BOARD_SIZE || newHead.y < 0 || newHead.y >= BOARD_SIZE) {
+      setGameOver(true);
+      return;
+    }
+
+    // Detectar colisión consigo misma
+    if (snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+      setGameOver(true);
+      return;
+    }
+
+    // Creamos la nueva serpiente (añadiendo la nueva cabeza al inicio)
+    const newSnake = [newHead, ...snake];
+
+    // Detectar si comió
+    if (newHead.x === food.x && newHead.y === food.y) {
+      setScore(score + 10);
+      generateNewFood(newSnake); // Si comió, NO quitamos la cola (crece) y generamos nueva comida
+    } else {
+      newSnake.pop(); // Si no comió, quitamos la cola para mantener el tamaño
+    }
+
+    setSnake(newSnake);
+  };
+
+  // Generar comida en un lugar aleatorio (que no esté sobre la serpiente)
+  const generateNewFood = (currentSnake) => {
+    let newFood;
+    do {
+      newFood = {
+        x: Math.floor(Math.random() * BOARD_SIZE),
+        y: Math.floor(Math.random() * BOARD_SIZE)
+      };
+    } while (currentSnake.some(seg => seg.x === newFood.x && seg.y === newFood.y));
+    
+    setFood(newFood);
+  };
+
+  // Reiniciar el juego
+  const resetGame = () => {
+    setSnake([{ x: 10, y: 10 }]);
+    setFood({ x: 15, y: 5 });
+    setDirection('RIGHT');
+    setGameOver(false);
+    setScore(0);
+  };
+
+  // 5. RENDERIZADO (LO QUE VES EN PANTALLA)
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="game-container">
+      <h1>Snake Game 🐍</h1>
+      <p>Puntaje: {score}</p>
+      
+      {/* El Tablero */}
+      <div 
+        className="board" 
+        style={{ 
+          width: BOARD_SIZE * CELL_SIZE, 
+          height: BOARD_SIZE * CELL_SIZE 
+        }}
+      >
+        {/* Dibujar la comida */}
+        <div 
+          className="food" 
+          style={{ 
+            left: food.x * CELL_SIZE, 
+            top: food.y * CELL_SIZE,
+            width: CELL_SIZE,
+            height: CELL_SIZE
+          }} 
+        />
 
-      <div className="ticks"></div>
+        {/* Dibujar la serpiente */}
+        {snake.map((segment, index) => (
+          <div 
+            key={index} 
+            className={`snake-segment ${index === 0 ? 'head' : ''}`}
+            style={{ 
+              left: segment.x * CELL_SIZE, 
+              top: segment.y * CELL_SIZE,
+              width: CELL_SIZE,
+              height: CELL_SIZE
+            }} 
+          />
+        ))}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* Pantalla de Game Over */}
+        {gameOver && (
+          <div className="game-over">
+            <h2>¡Perdiste!</h2>
+            <p>Puntaje final: {score}</p>
+            <button onClick={resetGame}>Jugar de nuevo</button>
+          </div>
+        )}
+      </div>
+      
+      <p className="instructions">Usa las flechas del teclado para moverte</p>
+    </div>
+  );
 }
 
-export default App
+export default App;
