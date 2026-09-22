@@ -1,6 +1,5 @@
 import React from 'react';
 import { sound } from '../Utils/sound';
-import logoBocaraca from '../Img/logoBocaraca.jpeg';
 
 export const Inicio = ({ alIniciarJuego }) => {
   const manejarInsertCoin = () => {
@@ -21,25 +20,34 @@ export const Inicio = ({ alIniciarJuego }) => {
 
   return (
     <>
-      <div className="bocaraka-bg" />
+      <div className="bocaraca-bg" />
 
       <header className="arcade-navbar">
         <div className="brand-title">🐉 BOCARAKÁ ARCADE</div>
         <nav className="nav-group">
-          <button className="nav-link-btn active">Inicio</button>
-          <button className="nav-link-btn" onClick={manejarInsertCoin}>Jugar</button>
+          <button className="nav-link-btn active" type="button">Inicio</button>
+          <button className="nav-link-btn" type="button" onClick={manejarInsertCoin}>Jugar</button>
         </nav>
       </header>
 
       <div className="home-wrapper">
         <div className="arcade-cabinet-home">
           <div className="crt-home-screen">
-            <div className="home-logo-frame">
-              <img className="home-logo" src={logoBocaraca} alt="Logo de Bocaraká Arcade" />
-            </div>
+            {/* Imagen promocional del juego reescalable */}
+            <img 
+              src="/logo-bocaraka.png" 
+              alt="Bocaraká Arcade" 
+              className="arcade-hero-img" 
+              onError={(e) => {
+                // Si la imagen no está en public/logo-bocaraka.png, la oculta automáticamente
+                e.target.style.display = 'none';
+              }}
+            />
 
-            <h1 className="neon-bocaraka-title">Bocaraká</h1>
-            <p className="author-tag">By: Moisés</p>
+            <div>
+              <h1 className="neon-bocaraka-title">Bocaraká</h1>
+              <p className="author-tag">By: Moisés</p>
+            </div>
 
             <div className="insert-coin-container" onClick={manejarInsertCoin}>
               <div className="coin-slot" />

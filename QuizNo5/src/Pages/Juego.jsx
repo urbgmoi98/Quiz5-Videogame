@@ -14,7 +14,7 @@ const INITIAL_FOOD = { x: 5, y: 5 };
 // Lista simulada de High Scores (se actualiza automáticamente con la puntuación obtenida)
 const MOCK_HIGH_SCORES = [
   { id: 1, nombre: 'Moisés', puntaje: 180 },
-  { id: 2, nombre: 'Krishna', puntaje: 140 },
+  { id: 2, nombre: 'Elvis Tek', puntaje: 140 },
   { id: 3, nombre: 'BOCARAKÁ', puntaje: 100 },
   { id: 4, nombre: 'VIPER_99', puntaje: 60 },
 ];
