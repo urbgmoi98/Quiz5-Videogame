@@ -1,5 +1,6 @@
 import React from 'react';
 import { sound } from '../Utils/sound';
+import logoBocaraca from '../Img/logoBocaraca.jpeg';
 
 export const Inicio = ({ alIniciarJuego }) => {
   const manejarInsertCoin = () => {
@@ -33,8 +34,8 @@ export const Inicio = ({ alIniciarJuego }) => {
       <div className="home-wrapper">
         <div className="arcade-cabinet-home">
           <div className="crt-home-screen">
-            <div style={{ fontSize: '3rem', marginBottom: '10px', filter: 'drop-shadow(0 0 12px #05d9e8)' }}>
-              🐍
+            <div className="home-logo-frame">
+              <img className="home-logo" src={logoBocaraca} alt="Logo de Bocaraká Arcade" />
             </div>
 
             <h1 className="neon-bocaraka-title">Bocaraká</h1>

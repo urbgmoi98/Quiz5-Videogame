@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@600;700;900&display=swap');
 
+/* ==========================================
+   1. VARIABLES Y RESET GENERAL
+   ========================================== */
 :root {
   --bocaraka-cyan: #05d9e8;
   --bocaraka-gold: #ffd700;
@@ -23,7 +26,9 @@ html, body, #root {
   background: #04060d;
 }
 
-/* 🌐 Navegación Neón */
+/* ==========================================
+   2. NAVEGACIÓN NEÓN
+   ========================================== */
 .arcade-navbar {
   position: relative;
   z-index: 50;
@@ -62,14 +67,17 @@ html, body, #root {
   transition: all 0.2s ease;
 }
 
-.nav-link-btn:hover, .nav-link-btn.active {
+.nav-link-btn:hover, 
+.nav-link-btn.active {
   color: var(--bocaraka-cyan);
   background: rgba(5, 217, 232, 0.15);
   border-color: var(--bocaraka-cyan);
   box-shadow: 0 0 12px rgba(5, 217, 232, 0.5);
 }
 
-/* 🌌 Fondo Animado Cyberpunk */
+/* ==========================================
+   3. FONDO ANIMADO CYBERPUNK
+   ========================================== */
 .bocaraka-bg {
   position: fixed;
   inset: 0;
@@ -97,7 +105,9 @@ html, body, #root {
   100% { transform: translateY(-200px); }
 }
 
-/* 🕹️ Mueble Arcade Contenedor */
+/* ==========================================
+   4. MUEBLE ARCADE Y PANTALLA CRT
+   ========================================== */
 .home-wrapper {
   position: relative;
   z-index: 10;
@@ -122,7 +132,7 @@ html, body, #root {
   align-items: center;
 }
 
-/* Pantalla CRT Retro */
+/* Contenedor CRT Retro */
 .crt-home-screen {
   position: relative;
   width: 100%;
@@ -171,7 +181,7 @@ html, body, #root {
   margin-bottom: 25px;
 }
 
-/* 🪙 Insert Coin */
+/* Botón Insert Coin */
 .insert-coin-container {
   display: flex;
   flex-direction: column;
@@ -205,7 +215,9 @@ html, body, #root {
   50% { opacity: 0; }
 }
 
-/* 🐍 Tablero e Indicadores del Juego */
+/* ==========================================
+   5. TABLERO Y SERPIENTE (SNAKE)
+   ========================================== */
 .tablero-grid {
   display: grid;
   grid-template-columns: repeat(20, min(17px, 2.1vw));
@@ -264,4 +276,122 @@ html, body, #root {
   border-radius: 12px;
   padding: 6px 12px;
   cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.arcade-btn:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================
+   6. EFECTO GLITCH GAME OVER & HIGH SCORES
+   ========================================== */
+.glitch-gameover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 5, 18, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  padding: 15px;
+  backdrop-filter: blur(4px);
+  animation: glitchShake 0.4s infinite alternate;
+}
+
+@keyframes glitchShake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+  100% { transform: translate(1px, 2px); }
+}
+
+.glitch-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  color: #fff;
+  position: relative;
+  text-shadow: 0.05em 0 0 rgba(255, 0, 85, 0.8), -0.05em -0.025em 0 rgba(0, 240, 255, 0.8);
+  animation: glitchText 1s infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes glitchText {
+  0% {
+    text-shadow: 0.05em 0 0 rgba(255, 0, 85, 0.8), -0.05em -0.025em 0 rgba(0, 240, 255, 0.8);
+  }
+  14% {
+    text-shadow: 0.05em 0 0 rgba(255, 0, 85, 0.8), -0.05em -0.025em 0 rgba(0, 240, 255, 0.8);
+  }
+  15% {
+    text-shadow: -0.05em -0.025em 0 rgba(255, 0, 85, 0.8), 0.025em 0.025em 0 rgba(0, 240, 255, 0.8);
+  }
+  49% {
+    text-shadow: -0.05em -0.025em 0 rgba(255, 0, 85, 0.8), 0.025em 0.025em 0 rgba(0, 240, 255, 0.8);
+  }
+  50% {
+    text-shadow: 0.025em 0.05em 0 rgba(255, 0, 85, 0.8), 0.05em 0 0 rgba(0, 240, 255, 0.8);
+  }
+  99% {
+    text-shadow: 0.025em 0.05em 0 rgba(255, 0, 85, 0.8), 0.05em 0 0 rgba(0, 240, 255, 0.8);
+  }
+  100% {
+    text-shadow: -0.025em 0 0 rgba(255, 0, 85, 0.8), -0.025em -0.025em 0 rgba(0, 240, 255, 0.8);
+  }
+}
+
+.scores-board {
+  width: 90%;
+  max-width: 380px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #ff2a6d;
+  box-shadow: 0 0 15px rgba(255, 42, 109, 0.4);
+  padding: 12px;
+  border-radius: 8px;
+  margin: 10px 0 15px 0;
+}
+
+.scores-header {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  color: var(--bocaraka-gold);
+  text-align: center;
+  border-bottom: 1px dashed var(--bocaraka-gold);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  padding: 4px 0;
+  color: #05d9e8;
+}
+
+.score-row.current-player {
+  color: #39ff14;
+  text-shadow: 0 0 6px #39ff14;
+}
+
+.glitch-retry-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.75rem;
+  background: #ff2a6d;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 0 12px #ff2a6d;
+  transition: all 0.15s ease;
+}
+
+.glitch-retry-btn:hover {
+  background: #39ff14;
+  color: #000;
+  box-shadow: 0 0 18px #39ff14;
 }

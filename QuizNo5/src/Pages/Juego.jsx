@@ -11,12 +11,21 @@ const INITIAL_SNAKE = [
 const INITIAL_DIR = { x: 0, y: -1 };
 const INITIAL_FOOD = { x: 5, y: 5 };
 
+// Lista simulada de High Scores (se actualiza automáticamente con la puntuación obtenida)
+const MOCK_HIGH_SCORES = [
+  { id: 1, nombre: 'Moisés', puntaje: 180 },
+  { id: 2, nombre: 'Krishna', puntaje: 140 },
+  { id: 3, nombre: 'BOCARAKÁ', puntaje: 100 },
+  { id: 4, nombre: 'VIPER_99', puntaje: 60 },
+];
+
 export const Juego = ({ alVolverMenu }) => {
   const [snake, setSnake] = useState(INITIAL_SNAKE);
   const [food, setFood] = useState(INITIAL_FOOD);
   const [estado, setEstado] = useState('playing'); // playing | paused | gameover
   const [puntos, setPuntos] = useState(0);
   const [vidas, setVidas] = useState(3);
+  const [highScores, setHighScores] = useState(MOCK_HIGH_SCORES);
 
   const dirRef = useRef(INITIAL_DIR);
   const nivel = Math.floor(puntos / 40) + 1;
@@ -58,13 +67,13 @@ export const Juego = ({ alVolverMenu }) => {
         const nextHead = { x: head.x + dirRef.current.x, y: head.y + dirRef.current.y };
 
         if (nextHead.x < 0 || nextHead.x >= GRID_SIZE || nextHead.y < 0 || nextHead.y >= GRID_SIZE) {
-          try { sound.playHit(); } catch(e){}
+          try { sound.playHit(); } catch (e) {}
           manejarColision();
           return prev;
         }
 
         if (prev.some((seg) => seg.x === nextHead.x && seg.y === nextHead.y)) {
-          try { sound.playHit(); } catch(e){}
+          try { sound.playHit(); } catch (e) {}
           manejarColision();
           return prev;
         }
@@ -72,7 +81,7 @@ export const Juego = ({ alVolverMenu }) => {
         const nuevaSerpiente = [nextHead, ...prev];
 
         if (nextHead.x === food.x && nextHead.y === food.y) {
-          try { sound.playEat(); } catch(e){}
+          try { sound.playEat(); } catch (e) {}
           setPuntos((p) => p + 10);
           setFood({
             x: Math.floor(Math.random() * GRID_SIZE),
@@ -89,10 +98,18 @@ export const Juego = ({ alVolverMenu }) => {
     return () => clearInterval(timer);
   }, [estado, nivel, food]);
 
+  const actualizarHighScores = (nuevoPuntaje) => {
+    const nuevaLista = [...highScores, { id: Date.now(), nombre: 'TÚ', puntaje: nuevoPuntaje }]
+      .sort((a, b) => b.puntaje - a.puntaje)
+      .slice(0, 5);
+    setHighScores(nuevaLista);
+  };
+
   const manejarColision = () => {
     setVidas((v) => {
       if (v - 1 <= 0) {
-        try { sound.playGameOver(); } catch(e){}
+        try { sound.playGameOver(); } catch (e) {}
+        actualizarHighScores(puntos);
         setEstado('gameover');
         return 0;
       }
@@ -126,19 +143,37 @@ export const Juego = ({ alVolverMenu }) => {
       <div className="home-wrapper">
         <div className="arcade-cabinet-home">
           <div className="crt-home-screen">
+            {/* Header marcador */}
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '8px', fontFamily: "'Press Start 2P', monospace", fontSize: '0.6rem', color: '#05d9e8' }}>
               <span>SCORE: {puntos}</span>
               <span>LVL: {nivel}</span>
               <span>LIVES: {'❤️'.repeat(vidas)}</span>
             </div>
 
+            {/* Tablero de Juego */}
             <Tablero snake={snake} food={food} direction={dirRef.current} />
 
+            {/* OVERLAY GLITCH GAME OVER & HIGH SCORES */}
             {estado === 'gameover' && (
-              <div style={{ marginTop: '10px', textAlign: 'center' }}>
-                <p style={{ fontFamily: "'Press Start 2P', monospace", color: '#ff2a6d', fontSize: '0.9rem' }}>GAME OVER</p>
-                <button className="arcade-btn" onClick={reiniciarJuego} style={{ marginTop: '8px' }}>
-                  REINTENTAR
+              <div className="glitch-gameover-overlay">
+                <h1 className="glitch-title">SYSTEM ERROR</h1>
+                <p style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.7rem', color: '#ff2a6d', marginBottom: '8px' }}>
+                  ★ GAME OVER ★
+                </p>
+
+                {/* Tabla de Puntuaciones */}
+                <div className="scores-board">
+                  <div className="scores-header">TOP HIGH SCORES</div>
+                  {highScores.map((item, index) => (
+                    <div key={item.id} className={`score-row ${item.nombre === 'TÚ' ? 'current-player' : ''}`}>
+                      <span>#{index + 1} {item.nombre}</span>
+                      <span>{item.puntaje} PTS</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button className="glitch-retry-btn" onClick={reiniciarJuego}>
+                  ► TRY AGAIN
                 </button>
               </div>
             )}
