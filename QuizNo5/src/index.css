@@ -165,13 +165,19 @@ html, body, #root {
 
 /* 🖼️ Imagen / Logo Adaptativo */
 .arcade-hero-img {
-  max-width: 80%;
-  max-height: 180px;
-  object-fit: contain;
+  width: 190px;
+  height: 190px;
+  object-fit: cover;
   border-radius: 50%;
   border: 2px solid var(--bocaraka-cyan);
-  box-shadow: 0 0 15px var(--bocaraka-cyan);
+  box-shadow: 0 0 15px var(--bocaraka-cyan), 0 0 28px rgba(5, 217, 232, 0.55);
   margin-top: 5px;
+  animation: logoSpin 12s linear infinite;
+}
+
+@keyframes logoSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .neon-bocaraka-title {

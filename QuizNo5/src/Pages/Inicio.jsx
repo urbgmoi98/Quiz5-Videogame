@@ -1,5 +1,6 @@
 import React from 'react';
 import { sound } from '../Utils/sound';
+import logoBocaraca from '../Img/logoBocaraca.jpeg';
 
 export const Inicio = ({ alIniciarJuego }) => {
   const manejarInsertCoin = () => {
@@ -33,15 +34,10 @@ export const Inicio = ({ alIniciarJuego }) => {
       <div className="home-wrapper">
         <div className="arcade-cabinet-home">
           <div className="crt-home-screen">
-            {/* Imagen promocional del juego reescalable */}
-            <img 
-              src="/logo-bocaraka.png" 
-              alt="Bocaraká Arcade" 
-              className="arcade-hero-img" 
-              onError={(e) => {
-                // Si la imagen no está en public/logo-bocaraka.png, la oculta automáticamente
-                e.target.style.display = 'none';
-              }}
+            <img
+              src={logoBocaraca}
+              alt="Logotipo de Bocaraká Arcade"
+              className="arcade-hero-img"
             />
 
             <div>
