@@ -1,14 +1,20 @@
 import React from 'react';
 
-export const Menu = ({ estado, iniciar, pausar, reiniciar }) => {
+export const MenuInicio = ({ alComenzar }) => {
   return (
-    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
-      {estado === 'idle' && <button className="btn-y2k" onClick={iniciar}>▶ Jugar</button>}
-      {estado === 'playing' && <button className="btn-y2k" onClick={pausar}>⏸ Pausa</button>}
-      {estado === 'paused' && <button className="btn-y2k" onClick={iniciar}>▶ Reanudar</button>}
-      {(estado === 'gameover' || estado === 'paused') && (
-        <button className="btn-y2k" style={{ background: '#FF8FD1' }} onClick={reiniciar}>🔄 Reiniciar</button>
-      )}
+    <div className="start-screen">
+      <div className="snake-hero-art">🐉✨</div>
+      <h1 className="start-title">BOCARACÁ</h1>
+      <p className="start-subtitle">ARCADE EDITION</p>
+
+      <div style={{ margin: '15px 0', fontSize: '0.85rem', color: '#a0aec0', lineHeight: '1.6' }}>
+        <p>🐍 Controla a la bocaracá (*Bothriechis schlegelii*)</p>
+        <p>🍎 llega lo más lejos posible sin chocar los bordes</p>
+      </div>
+
+      <button className="press-start-btn" onClick={alComenzar}>
+        ► PRESS START
+      </button>
     </div>
   );
 };
